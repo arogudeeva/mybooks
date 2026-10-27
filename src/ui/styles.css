@@ -1,0 +1,241 @@
+:root {
+  --bg: #faf7f2;
+  --surface: #fff;
+  --text: #2b2118;
+  --muted: #7a6b5d;
+  --accent: #8c4a2f;
+  --danger: #b3261e;
+  --border: #e6dccf;
+  --star: #e0a12b;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1612;
+    --surface: #271f19;
+    --text: #f1e8dc;
+    --muted: #a8998a;
+    --accent: #d38a66;
+    --border: #3a3027;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+  padding: 16px 16px 88px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+h1 {
+  font-size: 1.5rem;
+  margin: 8px 0 16px;
+}
+h3 {
+  margin: 20px 0 8px;
+}
+.muted {
+  color: var(--muted);
+}
+.error {
+  color: var(--danger);
+}
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  flex: 1;
+  padding: 14px 4px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+}
+.tab.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.btn {
+  padding: 10px 14px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn-wide {
+  width: 100%;
+}
+.link {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font: inherit;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.field {
+  display: block;
+  margin-top: 16px;
+}
+.field span {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.book-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 12px;
+}
+.book-card {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  color: inherit;
+  font: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.book-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cover {
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.cover-sm {
+  width: 64px;
+  height: 96px;
+}
+.cover-lg {
+  width: 112px;
+  height: 168px;
+}
+.cover-empty {
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  color: var(--muted);
+}
+.search-item .actions {
+  padding: 0 4px;
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+}
+.star {
+  background: none;
+  border: 0;
+  font-size: 2rem;
+  color: var(--border);
+  padding: 0 2px;
+  cursor: pointer;
+}
+.star.on {
+  color: var(--star);
+}
+span.star {
+  font-size: 1rem;
+  padding: 0;
+}
+
+.details-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.description {
+  white-space: pre-line;
+  margin: 20px 0;
+}
+
+.period-total {
+  font-size: 1.1rem;
+  margin: 20px 0 0;
+}
+.period-dates {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.period-dates .field {
+  flex: 1;
+  min-width: 140px;
+}
