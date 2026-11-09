@@ -1,5 +1,6 @@
 import type { Book, ShelfStatus } from '../../domain/book';
 import { formatDays, readingDays } from '../../domain/readingPeriod';
+import { GenreChips } from '../../ui/GenreChips';
 import { Cover } from '../../ui/Cover';
 import { strings } from '../../ui/strings';
 
@@ -29,6 +30,7 @@ export function ShelfView({ status, books, now, onOpen }: Props) {
                   <span className="muted">
                     {b.authors.join(', ') || strings.details.unknownAuthor}
                   </span>
+                  <GenreChips genres={b.genres} />
                   {readingDays(b, now) !== undefined && (
                     <span className="muted">
                       {b.status === 'finished' ? strings.period.readIn : strings.period.readingFor}{' '}

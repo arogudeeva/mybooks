@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useContainer } from '../../app/ContainerContext';
+import { collectGenres } from '../../domain/genres';
 import { SHELVES, type Book, type ShelfStatus } from '../../domain/book';
 import { Cover } from '../../ui/Cover';
 import { StarRating } from '../../ui/StarRating';
 import { strings } from '../../ui/strings';
+import { GenreTags } from '../genres/GenreTags';
 import { NotesField } from './NotesField';
 import { ReadingPeriod } from './ReadingPeriod';
 
@@ -18,9 +20,11 @@ interface Props {
 export function BookDetails({ bookId, now, onClose, onChanged }: Props) {
   const { books } = useContainer();
   const [book, setBook] = useState<Book | undefined>();
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     void books.get(bookId).then(setBook);
+    void books.list().then((all) => setSuggestions(collectGenres(all)));
   }, [books, bookId]);
 
   const apply = useCallback(
@@ -66,6 +70,12 @@ export function BookDetails({ bookId, now, onClose, onChanged }: Props) {
           </button>
         ))}
       </div>
+
+      <GenreTags
+        genres={book.genres ?? []}
+        suggestions={suggestions}
+        onChange={(g) => void apply(books.setGenres(book.id, g))}
+      />
 
       {book.status === 'finished' && (
         <>

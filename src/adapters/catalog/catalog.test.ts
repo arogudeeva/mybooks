@@ -19,6 +19,7 @@ describe('GoogleBooksCatalog', () => {
               authors: ['А'],
               description: 'Описание',
               imageLinks: { thumbnail: 'http://img/1' },
+              categories: ['Fiction / Fantasy / General'],
             },
           },
           { id: 'g2', volumeInfo: {} },
@@ -33,6 +34,7 @@ describe('GoogleBooksCatalog', () => {
         title: 'Книга',
         authors: ['А'],
         description: 'Описание',
+        genres: ['Фэнтези'],
         coverUrl: 'https://img/1',
       },
     ]);

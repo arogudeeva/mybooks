@@ -1,3 +1,4 @@
+import { genresFromCategories } from '../../domain/genres';
 import type { BookDraft } from '../../domain/book';
 import type { BookCatalog } from '../../ports/BookCatalog';
 
@@ -7,6 +8,7 @@ interface GoogleVolume {
     title?: string;
     authors?: string[];
     description?: string;
+    categories?: string[];
     imageLinks?: { thumbnail?: string; smallThumbnail?: string };
   };
 }
@@ -33,12 +35,14 @@ export class GoogleBooksCatalog implements BookCatalog {
       const info = v.volumeInfo;
       if (!info?.title) return [];
       const cover = info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail;
+      const genres = genresFromCategories(info.categories ?? []);
       const draft: BookDraft = {
         source: this.name,
         externalId: v.id,
         title: info.title,
         authors: info.authors ?? [],
         ...(info.description ? { description: info.description } : {}),
+        ...(genres.length ? { genres } : {}),
         ...(cover ? { coverUrl: cover.replace(/^http:/, 'https:') } : {}),
       };
       return [draft];

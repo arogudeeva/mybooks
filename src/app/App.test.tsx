@@ -35,4 +35,28 @@ describe('App', () => {
     await user.click(await screen.findByRole('radio', { name: '5 из 5' }));
     expect(await screen.findByRole('radio', { name: '5 из 5', checked: true })).toBeInTheDocument();
   });
+
+  it('показывает прочитанную книгу в статистике и позволяет добавить жанр', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(screen.getByRole('button', { name: 'Поиск' }));
+    await user.type(screen.getByPlaceholderText(/Название книги/), 'мастер');
+    await user.click(await screen.findByText('Мастер и Маргарита'));
+    await user.click(
+      within(screen.getByRole('listitem')).getByRole('button', { name: 'Прочитано' }),
+    );
+    await screen.findByRole('heading', { name: 'Прочитано' });
+    await user.click(await screen.findByRole('button', { name: /Мастер и Маргарита/ }));
+    await user.type(screen.getByLabelText('Свой жанр'), 'Классика,');
+    await user.click(await screen.findByRole('button', { name: 'Убрать жанр Классика' }));
+    await user.type(screen.getByLabelText('Свой жанр'), 'Роман{Enter}');
+    await screen.findByRole('button', { name: 'Убрать жанр Роман' });
+    await user.click(screen.getByRole('button', { name: /Назад/ }));
+
+    await user.click(screen.getByRole('button', { name: 'Статистика' }));
+    expect(await screen.findByRole('button', { name: /^Роман/ })).toBeInTheDocument();
+    expect(screen.getByText('Мастер и Маргарита')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Следующий период' })).toBeDisabled();
+  });
 });

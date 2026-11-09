@@ -35,6 +35,16 @@ describe('BookService', () => {
     expect((await books.get(b.id))?.rating).toBeUndefined();
   });
 
+  it('сохраняет жанры из каталога и правит их вручную', async () => {
+    const { books } = setup();
+    const b = await books.add(draft({ genres: ['Фантастика'] }), 'want');
+    expect(b.genres).toEqual(['Фантастика']);
+    await books.setGenres(b.id, ['Классика', 'классика', 'Мой жанр', 'Ещё', 'И ещё']);
+    expect((await books.get(b.id))?.genres).toEqual(['Классика', 'Мой жанр', 'Ещё', 'И ещё']);
+    await books.setGenres(b.id, []);
+    expect((await books.get(b.id))?.genres).toBeUndefined();
+  });
+
   it('бросает ошибку для несуществующей книги', async () => {
     await expect(setup().books.setNotes('нет', 'x')).rejects.toThrow();
   });
