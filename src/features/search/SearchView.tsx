@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useContainer } from '../../app/ContainerContext';
 import { SHELVES, type BookDraft, type ShelfStatus } from '../../domain/book';
+import { GenreChips } from '../../ui/GenreChips';
 import { Cover } from '../../ui/Cover';
 import { strings } from '../../ui/strings';
 import { useDebouncedSearch } from './useDebouncedSearch';
@@ -70,6 +71,7 @@ export function SearchView({ onAdded }: Props) {
                     <span className="muted">
                       {d.authors.join(', ') || strings.details.unknownAuthor}
                     </span>
+                    <GenreChips genres={d.genres} />
                     {shown.description && (
                       <span className={open ? '' : 'clamp'}>{shown.description}</span>
                     )}

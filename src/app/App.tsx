@@ -2,19 +2,21 @@ import { useState } from 'react';
 import { BackupView } from '../features/backup/BackupView';
 import { BookDetails } from '../features/book-details/BookDetails';
 import { SearchView } from '../features/search/SearchView';
+import { StatsView } from '../features/stats/StatsView';
 import { ShelfView } from '../features/shelves/ShelfView';
 import { SHELVES } from '../domain/book';
 import { strings } from '../ui/strings';
 import { useLibrary } from './useLibrary';
 
-type Tab = 'reading' | 'finished' | 'want' | 'search' | 'settings';
+type Tab = 'reading' | 'finished' | 'want' | 'stats' | 'search' | 'settings';
 
 const TAB_LABELS: Record<Tab, string> = {
   ...strings.shelf,
+  stats: strings.tabs.stats,
   search: strings.tabs.search,
   settings: strings.tabs.settings,
 };
-const TABS: Tab[] = [...SHELVES, 'search', 'settings'];
+const TABS: Tab[] = [...SHELVES, 'stats', 'search', 'settings'];
 
 export function App() {
   const { books, now, reload } = useLibrary();
@@ -38,6 +40,8 @@ export function App() {
               setTab(status);
             }}
           />
+        ) : tab === 'stats' ? (
+          <StatsView books={books ?? []} now={now} onOpen={setOpenId} />
         ) : tab === 'settings' ? (
           <BackupView onImported={() => void reload()} />
         ) : (

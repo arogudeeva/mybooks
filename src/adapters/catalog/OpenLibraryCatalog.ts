@@ -1,3 +1,4 @@
+import { knownGenres } from '../../domain/genres';
 import type { BookDraft } from '../../domain/book';
 import type { BookCatalog } from '../../ports/BookCatalog';
 
@@ -7,6 +8,7 @@ interface OpenLibraryDoc {
   author_name?: string[];
   cover_i?: number;
   first_sentence?: string[];
+  subject?: string[];
 }
 
 export class OpenLibraryCatalog implements BookCatalog {
@@ -18,18 +20,20 @@ export class OpenLibraryCatalog implements BookCatalog {
     const url = new URL('https://openlibrary.org/search.json');
     url.searchParams.set('q', query);
     url.searchParams.set('limit', '15');
-    url.searchParams.set('fields', 'key,title,author_name,cover_i,first_sentence');
+    url.searchParams.set('fields', 'key,title,author_name,cover_i,first_sentence,subject');
     const res = await this.fetchFn(url, { signal });
     if (!res.ok) throw new Error(`Open Library: HTTP ${res.status}`);
     const json = (await res.json()) as { docs?: OpenLibraryDoc[] };
     const drafts = (json.docs ?? []).flatMap((d) => {
       if (!d.title) return [];
+      const genres = knownGenres(d.subject ?? []);
       const draft: BookDraft = {
         source: this.name,
         externalId: d.key,
         title: d.title,
         authors: d.author_name ?? [],
         ...(d.first_sentence?.[0] ? { description: d.first_sentence[0] } : {}),
+        ...(genres.length ? { genres } : {}),
         ...(d.cover_i
           ? { coverUrl: `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg` }
           : {}),

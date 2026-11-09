@@ -12,6 +12,8 @@ export interface BookDraft {
   authors: string[];
   description?: string;
   coverUrl?: string;
+  /** Жанры-теги: из каталога, затем правятся вручную. */
+  genres?: string[];
 }
 
 export interface Book extends BookDraft {

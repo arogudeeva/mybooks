@@ -6,6 +6,7 @@ import {
   type Rating,
   type ShelfStatus,
 } from '../domain/book';
+import { normalizeGenres } from '../domain/genres';
 import type { BookRepository } from '../ports/BookRepository';
 import { systemClock, uuid, type Clock, type IdGenerator } from './clock';
 
@@ -60,6 +61,17 @@ export class BookService {
         if (dates.finishedAt === undefined) delete next.finishedAt;
         else next.finishedAt = dates.finishedAt;
       }
+      return next;
+    });
+  }
+
+  /** Заменяет жанры книги; список нормализуется (без дублей, не больше лимита). */
+  setGenres(id: string, genres: string[]): Promise<Book> {
+    return this.update(id, (b) => {
+      const next = { ...b, updatedAt: this.clock.now() };
+      const clean = normalizeGenres(genres, Infinity);
+      if (clean.length === 0) delete next.genres;
+      else next.genres = clean;
       return next;
     });
   }
