@@ -4,10 +4,19 @@ import { strings } from '../../ui/strings';
 interface Props {
   value: string;
   onSave: (value: string) => void;
+  label?: string;
+  placeholder?: string;
+  rows?: number;
 }
 
 /** Текстовое поле с автосохранением после паузы в наборе. */
-export function NotesField({ value, onSave }: Props) {
+export function NotesField({
+  value,
+  onSave,
+  label = strings.details.notes,
+  placeholder = strings.details.notesPlaceholder,
+  rows = 6,
+}: Props) {
   const [text, setText] = useState(value);
   const saved = useRef(value);
   const latest = useRef({ text, onSave });
@@ -35,11 +44,11 @@ export function NotesField({ value, onSave }: Props) {
 
   return (
     <label className="field">
-      <span>{strings.details.notes}</span>
+      <span>{label}</span>
       <textarea
         className="input"
-        rows={6}
-        placeholder={strings.details.notesPlaceholder}
+        rows={rows}
+        placeholder={placeholder}
         value={text}
         onChange={(e) => setText(e.target.value)}
       />

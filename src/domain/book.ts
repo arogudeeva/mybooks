@@ -21,6 +21,8 @@ export interface Book extends BookDraft {
   status: ShelfStatus;
   rating?: Rating;
   notes: string;
+  /** Откуда узнала о книге и кто её посоветовал. */
+  recommendation?: string;
   addedAt: number;
   startedAt?: number;
   finishedAt?: number;

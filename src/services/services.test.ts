@@ -45,6 +45,15 @@ describe('BookService', () => {
     expect((await books.get(b.id))?.genres).toBeUndefined();
   });
 
+  it('сохраняет пометку «кто посоветовал» и убирает пустую', async () => {
+    const { books } = setup();
+    const b = await books.add(draft(), 'want');
+    await books.setRecommendation(b.id, '  посоветовала Аня ');
+    expect((await books.get(b.id))?.recommendation).toBe('посоветовала Аня');
+    await books.setRecommendation(b.id, ' ');
+    expect((await books.get(b.id))?.recommendation).toBeUndefined();
+  });
+
   it('бросает ошибку для несуществующей книги', async () => {
     await expect(setup().books.setNotes('нет', 'x')).rejects.toThrow();
   });

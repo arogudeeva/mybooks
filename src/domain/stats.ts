@@ -24,8 +24,10 @@ export interface BookDays {
 }
 
 export interface Stats {
-  /** Книги периода, последние законченные — первыми. */
+  /** Прочитанные в период (по дате окончания), последние законченные — первыми. */
   books: Book[];
+  /** Все книги, читавшиеся в период: от старта до окончания, включая читаемые сейчас. */
+  periodBooks: Book[];
   count: number;
   prevCount: number;
   ratedCount: number;
@@ -75,10 +77,32 @@ function finishedBooks(books: readonly Book[]): (Book & { finishedAt: number })[
   );
 }
 
-/** Самая ранняя дата завершения — дальше в прошлое листать незачем. */
-export function earliestFinish(books: readonly Book[]): number | undefined {
-  const times = finishedBooks(books).map((b) => b.finishedAt);
-  return times.length ? Math.min(...times) : undefined;
+/** Когда книга читалась: от старта до окончания (для читаемой сейчас — до `now`). */
+export function readingSpan(book: Book, now: number): { start: number; end: number } | undefined {
+  if (book.status === 'finished' && book.finishedAt !== undefined) {
+    // Без даты старта (или с ошибочной) книга отмечается только в день завершения.
+    const start =
+      book.startedAt === undefined || book.startedAt > book.finishedAt
+        ? book.finishedAt
+        : book.startedAt;
+    return { start, end: book.finishedAt };
+  }
+  if (book.status === 'reading' && book.startedAt !== undefined && book.startedAt <= now) {
+    return { start: book.startedAt, end: now };
+  }
+  return undefined;
+}
+
+/** Пересекается ли чтение книги с интервалом [start, end). */
+const overlaps = (
+  span: { start: number; end: number } | undefined,
+  range: { start: number; end: number },
+) => !!span && span.start < range.end && span.end >= range.start;
+
+/** Самое раннее чтение — дальше в прошлое листать незачем. */
+export function earliestReading(books: readonly Book[], now: number): number | undefined {
+  const starts = books.flatMap((b) => readingSpan(b, now)?.start ?? []);
+  return starts.length ? Math.min(...starts) : undefined;
 }
 
 const average = (nums: number[]): number | undefined =>
@@ -116,7 +140,7 @@ function topAuthor(books: Book[]): Stats['topAuthor'] {
   return best;
 }
 
-export function computeStats(all: readonly Book[], period: Period): Stats {
+export function computeStats(all: readonly Book[], period: Period, now: number): Stats {
   const finished = finishedBooks(all);
   const within = (range: { start: number; end: number }) =>
     finished.filter((b) => b.finishedAt >= range.start && b.finishedAt < range.end);
@@ -138,21 +162,18 @@ export function computeStats(all: readonly Book[], period: Period): Stats {
     const d = new Date(b.finishedAt);
     byMonth[d.getMonth()]!++;
   }
+  const range = periodRange(period);
+  const periodBooks = all
+    .filter((b) => overlaps(readingSpan(b, now), range))
+    .sort((a, b) => readingSpan(b, now)!.end - readingSpan(a, now)!.end);
   if (period.kind === 'month') {
     for (let day = 1; day <= daysInMonth(period.year, period.month); day++) {
-      const dayStart = new Date(period.year, period.month, day).getTime();
-      const dayEnd = new Date(period.year, period.month, day + 1).getTime();
-      const reading = finished.filter((b) => {
-        // Без даты старта (или с ошибочной) книга отмечается только в день завершения.
-        const start =
-          b.startedAt === undefined || b.startedAt > b.finishedAt ? b.finishedAt : b.startedAt;
-        return start < dayEnd && b.finishedAt >= dayStart;
-      });
-      if (reading.length)
-        byDay.set(
-          day,
-          reading.sort((a, b) => a.finishedAt - b.finishedAt),
-        );
+      const dayRange = {
+        start: new Date(period.year, period.month, day).getTime(),
+        end: new Date(period.year, period.month, day + 1).getTime(),
+      };
+      const reading = periodBooks.filter((b) => overlaps(readingSpan(b, now), dayRange));
+      if (reading.length) byDay.set(day, reading);
     }
   }
 
@@ -161,6 +182,7 @@ export function computeStats(all: readonly Book[], period: Period): Stats {
   const author = topAuthor(books);
   return {
     books,
+    periodBooks,
     count: books.length,
     prevCount,
     ratedCount: ratings.length,
