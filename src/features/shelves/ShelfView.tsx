@@ -4,6 +4,14 @@ import { GenreChips } from '../../ui/GenreChips';
 import { Cover } from '../../ui/Cover';
 import { strings } from '../../ui/strings';
 
+/** Порядок на полках: «хочу» — по алфавиту, «прочитано» — по дате окончания, «читаю» — по последним правкам. */
+const SORTS: Record<ShelfStatus, (a: Book, b: Book) => number> = {
+  want: (a, b) => a.title.localeCompare(b.title, 'ru'),
+  finished: (a, b) =>
+    (b.finishedAt ?? -Infinity) - (a.finishedAt ?? -Infinity) || b.updatedAt - a.updatedAt,
+  reading: (a, b) => b.updatedAt - a.updatedAt,
+};
+
 interface Props {
   status: ShelfStatus;
   books: Book[];
@@ -12,7 +20,7 @@ interface Props {
 }
 
 export function ShelfView({ status, books, now, onOpen }: Props) {
-  const items = books.filter((b) => b.status === status).sort((a, b) => b.updatedAt - a.updatedAt);
+  const items = books.filter((b) => b.status === status).sort(SORTS[status]);
 
   return (
     <section>
@@ -31,6 +39,11 @@ export function ShelfView({ status, books, now, onOpen }: Props) {
                     {b.authors.join(', ') || strings.details.unknownAuthor}
                   </span>
                   <GenreChips genres={b.genres} />
+                  {b.status === 'want' && b.recommendation && (
+                    <span className="clamp">
+                      {strings.details.recommendationShort(b.recommendation)}
+                    </span>
+                  )}
                   {readingDays(b, now) !== undefined && (
                     <span className="muted">
                       {b.status === 'finished' ? strings.period.readIn : strings.period.readingFor}{' '}

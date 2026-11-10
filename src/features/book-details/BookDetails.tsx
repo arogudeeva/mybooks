@@ -40,6 +40,11 @@ export function BookDetails({ bookId, now, onClose, onChanged }: Props) {
     [books, bookId, onChanged],
   );
 
+  const saveRecommendation = useCallback(
+    (text: string) => void books.setRecommendation(bookId, text).then(onChanged),
+    [books, bookId, onChanged],
+  );
+
   if (!book) return null;
 
   async function remove() {
@@ -75,6 +80,14 @@ export function BookDetails({ bookId, now, onClose, onChanged }: Props) {
         genres={book.genres ?? []}
         suggestions={suggestions}
         onChange={(g) => void apply(books.setGenres(book.id, g))}
+      />
+
+      <NotesField
+        value={book.recommendation ?? ''}
+        onSave={saveRecommendation}
+        label={strings.details.recommendation}
+        placeholder={strings.details.recommendationPlaceholder}
+        rows={2}
       />
 
       {book.status === 'finished' && (

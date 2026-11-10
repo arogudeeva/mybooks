@@ -5,7 +5,7 @@ import { formatDays } from '../../domain/readingPeriod';
 import {
   computeStats,
   currentPeriod,
-  earliestFinish,
+  earliestReading,
   formatBooks,
   periodRange,
   shiftPeriod,
@@ -48,8 +48,8 @@ export function StatsView({ books, now, onOpen }: Props) {
   const [period, setPeriod] = useState<Period>(() => currentPeriod('month', now));
   const [filter, setFilter] = useState<Filter>(null);
 
-  const stats = useMemo(() => computeStats(books, period), [books, period]);
-  const earliest = useMemo(() => earliestFinish(books), [books]);
+  const stats = useMemo(() => computeStats(books, period, now), [books, period, now]);
+  const earliest = useMemo(() => earliestReading(books, now), [books, now]);
   const today = currentPeriod(kind, now);
 
   const canNext = periodRange(shiftPeriod(period, 1)).start <= now;
@@ -64,15 +64,26 @@ export function StatsView({ books, now, onOpen }: Props) {
     go(currentPeriod(k, now));
   }
 
+  const range = periodRange(period);
   const visible = (
-    filter?.kind === 'day' ? (stats.byDay.get(filter.day) ?? []) : stats.books
+    filter?.kind === 'day' ? (stats.byDay.get(filter.day) ?? []) : stats.periodBooks
   ).filter((b) => {
-    if (!filter || filter.kind === 'day') return true;
-    if (filter.kind === 'genre') {
-      return filter.genre === NO_GENRE ? !b.genres?.length : !!b.genres?.includes(filter.genre);
-    }
-    return true;
+    if (filter?.kind !== 'genre') return true;
+    return filter.genre === NO_GENRE ? !b.genres?.length : !!b.genres?.includes(filter.genre);
   });
+
+  /** Пометка для книги, которая читалась в период, но закончена не в нём. */
+  function periodNote(b: Book): string | undefined {
+    if (b.status === 'reading') return strings.stats.readingNow;
+    if (b.finishedAt === undefined || (b.finishedAt >= range.start && b.finishedAt < range.end)) {
+      return undefined;
+    }
+    return strings.stats.finishedOn(
+      new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+        b.finishedAt,
+      ),
+    );
+  }
 
   const diff = delta(stats.count, stats.prevCount, kind);
 
@@ -113,7 +124,7 @@ export function StatsView({ books, now, onOpen }: Props) {
         </button>
       </div>
 
-      {stats.count === 0 ? (
+      {stats.periodBooks.length === 0 ? (
         <div className="stats-empty">
           <p>{strings.stats.empty[kind]}</p>
           <p className="muted">{strings.stats.emptyHint}</p>
@@ -132,7 +143,9 @@ export function StatsView({ books, now, onOpen }: Props) {
             <Tile
               label={strings.stats.avgRating}
               value={stats.avgRating ? `★ ${stats.avgRating.toFixed(1)}` : '—'}
-              note={strings.stats.ratedOf(stats.ratedCount, stats.count)}
+              note={
+                stats.count > 0 ? strings.stats.ratedOf(stats.ratedCount, stats.count) : undefined
+              }
             />
             <Tile
               label={strings.stats.avgDays}
@@ -202,6 +215,7 @@ export function StatsView({ books, now, onOpen }: Props) {
                       {b.authors.join(', ') || strings.details.unknownAuthor}
                     </span>
                     <GenreChips genres={b.genres} />
+                    {periodNote(b) && <span className="muted small">{periodNote(b)}</span>}
                     {b.rating && (
                       <span className="star on" aria-label={`Оценка ${b.rating} из 5`}>
                         {'★'.repeat(b.rating)}
@@ -218,16 +232,31 @@ export function StatsView({ books, now, onOpen }: Props) {
   );
 }
 
-function Tile({ label, value, note }: { label: string; value: string; note?: string | undefined }) {
+function Tile({
+  label,
+  value,
+  note,
+  cover,
+}: {
+  label: string;
+  value: string;
+  note?: string | undefined;
+  cover?: Book | undefined;
+}) {
   return (
-    <div className="tile">
-      <span className="tile-label">{label}</span>
-      <strong className="tile-value">{value}</strong>
-      {note && <span className="muted small">{note}</span>}
+    <div className={cover ? 'tile tile-book' : 'tile'}>
+      {cover && <Cover url={cover.coverUrl} title={cover.title} />}
+      <div className="tile-body">
+        <span className="tile-label">{label}</span>
+        <strong className="tile-value">{value}</strong>
+        {note && <span className="muted small">{note}</span>}
+      </div>
     </div>
   );
 }
 
 function BookTile({ label, item }: { label: string; item: BookDays }) {
-  return <Tile label={label} value={item.book.title} note={formatDays(item.days)} />;
+  return (
+    <Tile label={label} value={item.book.title} note={formatDays(item.days)} cover={item.book} />
+  );
 }

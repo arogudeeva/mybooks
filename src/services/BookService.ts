@@ -80,6 +80,17 @@ export class BookService {
     return this.update(id, (b) => ({ ...b, notes, updatedAt: this.clock.now() }));
   }
 
+  /** Пометка «откуда узнала о книге»; пустая строка убирает поле. */
+  setRecommendation(id: string, text: string): Promise<Book> {
+    return this.update(id, (b) => {
+      const next = { ...b, updatedAt: this.clock.now() };
+      const value = text.trim();
+      if (value) next.recommendation = value;
+      else delete next.recommendation;
+      return next;
+    });
+  }
+
   remove(id: string): Promise<void> {
     return this.repo.deleteBook(id);
   }
